@@ -1,0 +1,27 @@
+# Core
+python-dotenv       
+fastapi             
+uvicorn             
+pydantic            
+
+# LangChain + LLMs
+langchain
+langchain-core
+langchain-community
+langchain-google-genai   
+openai                   
+
+# Data processing
+PyPDF2               
+# pymupdf             
+youtube-transcript-api   
+# tiktoken           
+nltk                
+
+
+faiss-cpu            # vector DB for retrieval
+chromadb             # alternative lightweight vector store
+
+# Utils
+requests
+# httpx
