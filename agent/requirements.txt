@@ -1,0 +1,28 @@
+Flask
+python-dotenv
+
+# You can uncomment these if you switch to FastAPI
+fastapi
+uvicorn
+# LangChain and LLM Integrations
+# LangChain has moved to version 0.2.x, which includes some breaking changes from 0.1.x
+langchain
+langchain-core
+langchain-community
+langchain-google-genai
+langchain-huggingface
+google-generativeai   # For Gemini API
+openai
+
+# Data Processing and Embeddings
+pypdf                 # Successor to PyPDF2 for PDF parsing
+youtube-transcript-api
+nltk
+sentence-transformers  # Peer dependency for HuggingFaceEmbeddings
+
+# Vector Stores
+faiss-cpu             # For RAG retrieval
+
+chromadb
+Utility
+requests
