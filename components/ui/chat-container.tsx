@@ -43,18 +43,18 @@ export function ChatContainer({ uploadedFile }: ChatContainerProps) {
           role: 'con' as const,
         },
         {
-          content: "Furthermore, the methodology section clearly outlines the research approach, data collection methods, and analytical frameworks used.",
+          content: "Based on my analysis, this document demonstrates strong research characteristics. It follows established academic conventions with clear methodology, comprehensive results, and proper citation practices that align with peer-reviewed standards.",
           role: 'pro' as const,
         },
         {
-          content: "The sample size and data collection methods raise serious questions about the validity and generalizability of the findings.",
+          content: "While the document has academic structure, critical examination reveals significant methodological limitations. The sample size appears insufficient, and the statistical analysis lacks the depth required for robust scientific conclusions.",
           role: 'con' as const,
         }
       ]
       
       const systemMessage: Message = {
         id: Date.now().toString(),
-        content: `Starting debate analysis for "${uploadedFile?.name}". Two AI systems will now evaluate whether this document qualifies as a research paper.`,
+        content: `Analysis complete for "${uploadedFile?.name}". Final assessment: The document demonstrates research potential but requires significant methodological improvements to meet full research paper standards. Score: 75/100`,
         role: 'system',
         timestamp: new Date(),
       }
