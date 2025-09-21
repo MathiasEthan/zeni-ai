@@ -189,6 +189,7 @@ export const MobileNavMenu = ({
   children,
   className,
   isOpen,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onClose,
 }: MobileNavMenuProps) => {
   return (
