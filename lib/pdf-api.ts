@@ -3,6 +3,8 @@
  * Handles communication with the Flask backend
  */
 
+import { getBackendUrl } from './api-config';
+
 export interface PDFExtractionResponse {
   success: boolean;
   filename: string;
@@ -63,7 +65,7 @@ export async function extractPDFText(file: File): Promise<PDFExtractionResponse>
   }
 
   // Try to use backend API first
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = getBackendUrl();
   
   try {
     const formData = new FormData();
@@ -178,7 +180,7 @@ REFERENCES
  * @returns Promise<boolean> - true if backend is available, false otherwise
  */
 export async function checkAPIHealth(): Promise<boolean> {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = getBackendUrl();
   
   try {
     const response = await fetch(`${backendUrl}/api/health`, {
@@ -206,7 +208,7 @@ export async function summarizeText(text: string, filename?: string): Promise<Te
     throw new Error('No text provided for summarization');
   }
 
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = getBackendUrl();
   
   try {
     const response = await fetch(`${backendUrl}/api/summarize`, {

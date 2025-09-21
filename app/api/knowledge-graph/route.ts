@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-// Backend API configuration
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000'
+import { getBackendUrl } from '@/lib/api-config'
 
 interface GraphNode {
   id: string
@@ -37,7 +35,8 @@ interface BackendRelationship {
 
 async function fetchGraphDataFromBackend(): Promise<GraphData> {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/knowledge-graph/status`)
+    const backendUrl = getBackendUrl()
+    const response = await fetch(`${backendUrl}/api/knowledge-graph/status`)
     
     if (!response.ok) {
       throw new Error(`Backend responded with status: ${response.status}`)
@@ -86,7 +85,8 @@ function getMockGraphData(): GraphData {
 export async function GET() {
   try {
     // Check if we should use mock data or try to connect to backend
-    const useBackend = process.env.BACKEND_URL && process.env.USE_BACKEND === 'true'
+    const backendUrl = getBackendUrl()
+    const useBackend = backendUrl && process.env.USE_BACKEND === 'true'
     
     let graphData: GraphData
     
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     const backendFormData = new FormData()
     backendFormData.append('file', file)
     
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000'
+    const backendUrl = getBackendUrl()
     const response = await fetch(`${backendUrl}/api/knowledge-graph`, {
       method: 'POST',
       body: backendFormData

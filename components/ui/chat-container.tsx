@@ -5,6 +5,7 @@ import { AnimatePresence } from 'motion/react'
 import { MessageComponent, type Message } from './message'
 import { Button } from './button'
 import { ArrowLeft, FileText } from 'lucide-react'
+import { createBackendUrl } from '@/lib/api-config'
 
 interface ChatContainerProps {
   uploadedFile: File | null
@@ -32,7 +33,7 @@ export function ChatContainer({ uploadedFile }: ChatContainerProps) {
       
       console.log('Starting streaming debate analysis...')
       
-      const response = await fetch('http://localhost:5000/api/debate', {
+      const response = await fetch(createBackendUrl('/api/debate'), {
         method: 'POST',
         body: formData,
       })
@@ -107,7 +108,7 @@ export function ChatContainer({ uploadedFile }: ChatContainerProps) {
       console.error('Error starting debate:', error)
       const errorMessage: Message = {
         id: Date.now().toString(),
-        content: `Failed to start debate analysis. Please ensure the Flask server is running on localhost:5000. Error: ${error}`,
+        content: `Failed to start debate analysis. Please ensure the backend server is running. Error: ${error}`,
         role: 'system',
         timestamp: new Date(),
       }

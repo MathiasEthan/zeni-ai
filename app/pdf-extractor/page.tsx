@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'motion/react';
 import { Clock, Users, AlertCircle, CheckCircle, XCircle, FileText, Search, Scale, Upload } from 'lucide-react';
 import { summarizeText, TextSummaryResponse } from '@/lib/pdf-api';
+import { getBackendUrl } from '@/lib/api-config';
 
 interface DebateMessage {
   agent_role: string;
@@ -124,7 +125,7 @@ export default function ResearchDebateEvaluator() {
       const formData = new FormData();
       formData.append('file', textFile);
       
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+      const backendUrl = getBackendUrl();
       console.log('Starting AI debate analysis with backend...');
       
       const response = await fetch(`${backendUrl}/api/debate-json`, {

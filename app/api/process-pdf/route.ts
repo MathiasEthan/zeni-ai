@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getBackendUrl } from '@/lib/api-config'
 
 interface GraphNode {
   id: string
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     const backendFormData = new FormData()
     backendFormData.append('file', file)
     
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000'
+    const backendUrl = getBackendUrl()
     
     try {
       const response = await fetch(`${backendUrl}/api/knowledge-graph`, {

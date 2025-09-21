@@ -6,6 +6,7 @@ import { KnowledgeGraphVisualization } from '@/components/ui/knowledge-graph'
 import { FileUpload } from '@/components/ui/file-upload'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Database, Zap, FileText, ArrowLeft } from 'lucide-react'
+import { createApiUrl } from '@/lib/api-config'
 
 interface GraphNode {
   id: string
@@ -40,7 +41,7 @@ export default function KnowledgeGraphPage() {
     setError(null)
     
     try {
-      const response = await fetch('/api/knowledge-graph')
+      const response = await fetch(createApiUrl('/api/knowledge-graph'))
       if (!response.ok) {
         throw new Error('Failed to fetch graph data')
       }
@@ -64,7 +65,7 @@ export default function KnowledgeGraphPage() {
         const formData = new FormData()
         formData.append('file', file)
         
-        const response = await fetch('/api/process-pdf', {
+        const response = await fetch(createApiUrl('/api/process-pdf'), {
           method: 'POST',
           body: formData
         })
