@@ -1,0 +1,22 @@
+# Exclude Python virtual environment and related files
+agent/
+!agent/app.py
+!agent/requirements.txt
+!agent/test_*.py
+!agent/comprehensive_test.py
+!agent/*.sh
+!agent/argument/
+!agent/knowledge_graph/
+!agent/PDF_GEN/
+!agent/YT-GEN/
+
+# Exclude all binary and symlink directories
+**/bin/
+**/lib/
+**/lib64/
+**/include/
+**/share/
+**/__pycache__/
+**/*.pyc
+**/.gitignore
+**/pyvenv.cfg

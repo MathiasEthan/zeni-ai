@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { MessageComponent, type Message } from './message'
 import { Button } from './button'
@@ -23,64 +23,107 @@ export function ChatContainer({ uploadedFile }: ChatContainerProps) {
     scrollToBottom()
   }, [messages])
 
-  useEffect(() => {
-    if (uploadedFile && !debateStarted) {
-      const mockMessages = [
-        {
-          content: "I believe this document demonstrates clear research qualities. It follows a structured methodology and presents systematic findings that contribute to the field.",
-          role: 'pro' as const,
-        },
-        {
-          content: "While the document has some academic elements, it lacks the depth and rigor expected of true research. The methodology appears superficial and doesn't meet peer-review standards.",
-          role: 'con' as const,
-        },
-        {
-          content: "The document shows rigorous analysis with proper citations and references to existing literature, which is fundamental to academic research.",
-          role: 'pro' as const,
-        },
-        {
-          content: "The literature review is insufficient and fails to comprehensively address existing work in this domain. This undermines the foundation of the research.",
-          role: 'con' as const,
-        },
-        {
-          content: "Based on my analysis, this document demonstrates strong research characteristics. It follows established academic conventions with clear methodology, comprehensive results, and proper citation practices that align with peer-reviewed standards.",
-          role: 'pro' as const,
-        },
-        {
-          content: "While the document has academic structure, critical examination reveals significant methodological limitations. The sample size appears insufficient, and the statistical analysis lacks the depth required for robust scientific conclusions.",
-          role: 'con' as const,
-        }
-      ]
+  const startDebateAnalysis = useCallback(async () => {
+    if (!uploadedFile) return
+    
+    try {
+      const formData = new FormData()
+      formData.append('file', uploadedFile)
       
-      const systemMessage: Message = {
+      console.log('Starting streaming debate analysis...')
+      
+      const response = await fetch('http://localhost:5000/api/debate', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      if (!response.body) {
+        throw new Error('ReadableStream not supported in this browser.')
+      }
+      
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      
+      let buffer = ''
+      let messageCount = 0
+      
+      console.log('Starting to read stream...')
+      
+      // Read the stream
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) {
+          console.log('Stream ended. Total messages received:', messageCount)
+          break
+        }
+        
+        // Decode the chunk and add to buffer
+        const chunk = decoder.decode(value, { stream: true })
+        buffer += chunk
+        
+        // Process complete lines (each message ends with \n)
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || '' // Keep incomplete line in buffer
+        
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const messageData = JSON.parse(line)
+              messageCount++
+              
+              console.log(`Received message ${messageCount}:`, {
+                role: messageData.role,
+                contentLength: messageData.content?.length || 0,
+                pointNumber: messageData.point_number,
+                isConclusion: messageData.is_conclusion
+              })
+              
+              const newMessage: Message = {
+                id: (Date.now() + Math.random()).toString(),
+                content: messageData.content,
+                role: messageData.role as 'pro' | 'con' | 'system',
+                timestamp: new Date(),
+              }
+              
+              // Add message immediately as it comes from the stream
+              setMessages(prev => {
+                console.log(`Adding message to UI. Total messages now: ${prev.length + 1}`)
+                return [...prev, newMessage]
+              })
+              
+            } catch (parseError) {
+              console.error('Error parsing JSON line:', parseError, 'Line:', line)
+            }
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error starting debate:', error)
+      const errorMessage: Message = {
         id: Date.now().toString(),
-        content: `Analysis complete for "${uploadedFile?.name}". Final assessment: The document demonstrates research potential but requires significant methodological improvements to meet full research paper standards. Score: 75/100`,
+        content: `Failed to start debate analysis. Please ensure the Flask server is running on localhost:5000. Error: ${error}`,
         role: 'system',
         timestamp: new Date(),
       }
+      setMessages(prev => [...prev, errorMessage])
+    }
+  }, [uploadedFile])
 
-      setMessages([systemMessage])
+  useEffect(() => {
+    if (uploadedFile && !debateStarted) {
       setDebateStarted(true)
       
-      // Start adding messages progressively
-      const addMessage = (index: number) => {
-        if (index < mockMessages.length) {
-          setTimeout(() => {
-            const newMessage: Message = {
-              id: (Date.now() + index).toString(),
-              content: mockMessages[index].content,
-              role: mockMessages[index].role,
-              timestamp: new Date(),
-            }
-            setMessages(prev => [...prev, newMessage])
-            addMessage(index + 1)
-          }, 2000 + Math.random() * 2000)
-        }
-      }
-      
-      setTimeout(() => addMessage(0), 1500)
+      // Clear any existing messages and start debate analysis
+      setMessages([])
+      startDebateAnalysis()
     }
-  }, [uploadedFile, debateStarted])
+  }, [uploadedFile, debateStarted, startDebateAnalysis])
 
   const resetDebate = () => {
     setMessages([])
