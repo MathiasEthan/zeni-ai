@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { ChatContainer } from '@/components/ui/chat-container'
 import { FileUpload } from '@/components/ui/file-upload'
@@ -8,6 +8,31 @@ import { FileUpload } from '@/components/ui/file-upload'
 export default function ChatPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [showChat, setShowChat] = useState(false)
+
+  // Check for extracted PDF data on component mount
+  useEffect(() => {
+    const extractedData = sessionStorage.getItem('extractedPDFData');
+    if (extractedData) {
+      try {
+        const data = JSON.parse(extractedData);
+        // Create a File object from the extracted text data
+        const blob = new Blob([data.text], { type: 'text/plain' });
+        const file = new File([blob], data.filename || 'extracted_text.txt', { 
+          type: 'text/plain' 
+        });
+        
+        setUploadedFile(file);
+        setShowChat(true);
+        
+        // Clear the data from sessionStorage after using it
+        sessionStorage.removeItem('extractedPDFData');
+        
+        console.log(`PDF text extraction complete. Starting AI debate for: ${data.filename}`);
+      } catch (error) {
+        console.error('Error parsing extracted PDF data:', error);
+      }
+    }
+  }, []);
 
   const handleFileUpload = (files: File[]) => {
     if (files.length > 0) {

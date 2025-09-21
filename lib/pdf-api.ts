@@ -12,6 +12,11 @@ export interface PDFExtractionResponse {
     word_count: number;
     line_count: number;
   };
+  summary?: {
+    summary: string;
+    key_points: string[];
+    word_count: number;
+  };
 }
 
 export interface PDFExtractionError {
@@ -19,12 +24,33 @@ export interface PDFExtractionError {
   message: string;
 }
 
+export interface TextSummaryResponse {
+  success: boolean;
+  summary: string;
+  key_points: string[];
+  word_count: number;
+}
+
+export interface TextSummaryError {
+  error: string;
+  message: string;
+}
+
 /**
- * Upload a PDF file and extract its text content (using hardcoded sample data)
+ * Upload a PDF file and extract its text content using backend API
  * @param file - The PDF file to upload
- * @returns Promise with sample extracted text data
+ * @returns Promise with extracted text data from backend or fallback sample data
  */
 export async function extractPDFText(file: File): Promise<PDFExtractionResponse> {
+  // Safety check for valid file object
+  if (!file) {
+    throw new Error('No file provided for text extraction');
+  }
+
+  if (!file.name || typeof file.name !== 'string') {
+    throw new Error('Invalid file: file.name is missing or invalid');
+  }
+
   // Validate file type on frontend
   if (!file.name.toLowerCase().endsWith('.pdf')) {
     throw new Error('Only PDF files are supported');
@@ -36,10 +62,46 @@ export async function extractPDFText(file: File): Promise<PDFExtractionResponse>
     throw new Error('File size exceeds 16MB limit');
   }
 
-  // Simulate processing delay
-  await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
+  // Try to use backend API first
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
 
-  // Return hardcoded sample response
+    const response = await fetch(`${backendUrl}/api/extract-and-summarize`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.text_extraction?.success) {
+        return {
+          success: true,
+          filename: result.text_extraction.filename || file.name,
+          text: result.text_extraction.text,
+          metadata: {
+            char_count: result.text_extraction.metadata?.char_count || result.text_extraction.text.length,
+            word_count: result.text_extraction.metadata?.word_count || result.text_extraction.text.split(/\s+/).length,
+            line_count: result.text_extraction.metadata?.line_count || result.text_extraction.text.split('\n').length,
+          },
+          summary: result.summary?.success ? {
+            summary: result.summary.summary,
+            key_points: result.summary.key_points || [],
+            word_count: result.summary.word_count || 0
+          } : undefined
+        };
+      }
+    }
+    
+    console.warn('Backend text extraction failed, using fallback data');
+  } catch (error) {
+    console.warn('Backend connection failed, using fallback data:', error);
+  }
+
+  // Fallback to sample data if backend is not available
+  await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
   const sampleText = `Research Paper Sample
 
 --- Page 1 ---
@@ -112,11 +174,85 @@ REFERENCES
 }
 
 /**
- * Check if the PDF extraction service is healthy (always returns true for hardcoded version)
- * @returns Promise<boolean> - always true since no backend is needed
+ * Check if the PDF extraction service is healthy
+ * @returns Promise<boolean> - true if backend is available, false otherwise
  */
 export async function checkAPIHealth(): Promise<boolean> {
-  return true;
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  
+  try {
+    const response = await fetch(`${backendUrl}/api/health`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.warn('Backend health check failed:', error);
+    return false;
+  }
+}
+
+/**
+ * Generate a summary of extracted text using backend AI
+ * @param text - The text to summarize
+ * @param filename - Optional filename for context
+ * @returns Promise with summary data from backend or fallback summary
+ */
+export async function summarizeText(text: string, filename?: string): Promise<TextSummaryResponse> {
+  if (!text || text.trim().length === 0) {
+    throw new Error('No text provided for summarization');
+  }
+
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  
+  try {
+    const response = await fetch(`${backendUrl}/api/summarize`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: text,
+        filename: filename,
+        max_length: 500, // Configurable summary length
+        include_key_points: true
+      }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      if (result.success) {
+        return {
+          success: true,
+          summary: result.summary,
+          key_points: result.key_points || [],
+          word_count: result.word_count || result.summary.split(/\s+/).length
+        };
+      }
+    }
+    
+    console.warn('Backend summarization failed, using fallback');
+  } catch (error) {
+    console.warn('Backend connection failed for summarization, using fallback:', error);
+  }
+
+  // Fallback to simple summary if backend is not available
+  const words = text.split(/\s+/);
+  const summary = words.slice(0, 100).join(' ') + (words.length > 100 ? '...' : '');
+  
+  return {
+    success: true,
+    summary: `[Fallback Summary] ${summary}`,
+    key_points: [
+      'Backend summarization service unavailable',
+      'Using simple text truncation as fallback',
+      'Consider checking backend connection'
+    ],
+    word_count: summary.split(/\s+/).length
+  };
 }
 
 /**

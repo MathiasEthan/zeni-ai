@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { IconUpload, IconFileText, IconLoader2, IconCheck, IconX } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
 import { extractPDFText, PDFExtractionResponse, formatExtractedText } from "@/lib/pdf-api";
+import { useRouter } from "next/navigation";
 
 const mainVariant = {
   initial: {
@@ -43,33 +44,47 @@ interface PDFFile extends File {
 export const PDFUpload = ({
   onTextExtracted,
   onError,
+  navigateOnSuccess = false,
 }: {
   onTextExtracted?: (text: string, filename: string, metadata?: {
     char_count: number;
     word_count: number;
     line_count: number;
+  }, summary?: {
+    summary: string;
+    key_points: string[];
+    word_count: number;
   }) => void;
   onError?: (error: string, filename: string) => void;
+  navigateOnSuccess?: boolean;
 }) => {
   const [files, setFiles] = useState<PDFFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const handleFileChange = async (newFiles: File[]) => {
-    // Filter only PDF files
-    const pdfFiles = newFiles.filter(file => 
-      file.name.toLowerCase().endsWith('.pdf')
-    ) as PDFFile[];
+    // Safety check for valid files array
+    if (!newFiles || newFiles.length === 0) {
+      console.warn('No files provided to handleFileChange');
+      return;
+    }
+
+    const pdfFiles = newFiles.filter(file => {
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+      return isPdf;
+    }) as PDFFile[];
 
     if (pdfFiles.length === 0) {
-      alert('Please upload only PDF files');
+      alert('Please upload only valid PDF files');
       return;
     }
 
     // Add files with initial status
-    const filesWithStatus = pdfFiles.map(file => ({
-      ...file,
-      status: 'idle' as UploadStatus
-    }));
+    const filesWithStatus = pdfFiles.map(file => {
+      const pdfFile = file as PDFFile;
+      pdfFile.status = 'idle';
+      return pdfFile;
+    });
 
     setFiles(prev => [...prev, ...filesWithStatus]);
 
@@ -80,6 +95,16 @@ export const PDFUpload = ({
   };
 
   const processFile = async (file: PDFFile) => {
+    // Safety check: ensure file object exists and has required properties
+    if (!file || !file.name || typeof file.name !== 'string') {
+      const errorMessage = `Invalid file object: ${!file ? 'file is null/undefined' : !file.name ? 'file.name is undefined' : 'file.name is not a string'}`;
+      console.error('processFile error:', errorMessage);
+      if (onError) {
+        onError(errorMessage, 'unknown_file');
+      }
+      return;
+    }
+
     try {
       // Update status to uploading
       updateFileStatus(file.name, 'uploading');
@@ -105,21 +130,41 @@ export const PDFUpload = ({
 
       // Call the callback with extracted text
       if (onTextExtracted) {
-        onTextExtracted(formattedText, result.filename, result.metadata);
+        onTextExtracted(formattedText, result.filename, result.metadata, result.summary);
+      }
+
+      // Navigate to chat page if enabled
+      if (navigateOnSuccess) {
+        // Store the extracted data in sessionStorage for the chat page
+        const extractedData = {
+          text: formattedText,
+          filename: result.filename,
+          metadata: result.metadata,
+          summary: result.summary
+        };
+        sessionStorage.setItem('extractedPDFData', JSON.stringify(extractedData));
+        
+        // Navigate to chat page after a short delay to show success
+        setTimeout(() => {
+          router.push('/chat');
+        }, 1500);
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       
+      // Safe filename access with fallback
+      const safeFileName = file?.name || 'unknown_file';
+      
       setFiles(prev => prev.map(f => 
-        f.name === file.name 
+        f.name === safeFileName 
           ? { ...f, status: 'error', error: errorMessage }
           : f
       ));
 
       // Call the error callback
       if (onError) {
-        onError(errorMessage, file.name);
+        onError(errorMessage, safeFileName);
       }
     }
   };
