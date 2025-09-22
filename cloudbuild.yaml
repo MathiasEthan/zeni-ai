@@ -6,7 +6,7 @@ steps:
       [
         "build",
         "--build-arg",
-        "NEXT_PUBLIC_BACKEND_URL=https://zeni-agent-backend-service-gen-lang-client-0966393611.asia-south1.run.app",
+  "NEXT_PUBLIC_BACKEND_URL=https://zeni-agent-backend-service-7swwhfygga-el.a.run.app",
         "--build-arg",
         "NEXT_PUBLIC_API_URL=https://my-frontend-service-gen-lang-client-0966393611.asia-south1.run.app",
         "--build-arg",
@@ -20,7 +20,11 @@ steps:
 
   # Push the image to Artifact Registry
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "us-central1-docker.pkg.dev/$PROJECT_ID/zeni-ai/zeni-ai-frontend:$COMMIT_SHA"]
+    args:
+      [
+        "push",
+        "us-central1-docker.pkg.dev/$PROJECT_ID/zeni-ai/zeni-ai-frontend:$COMMIT_SHA",
+      ]
 
   # Deploy to Cloud Run
   - name: "gcr.io/cloud-builders/gcloud"
@@ -36,7 +40,7 @@ steps:
         "--platform",
         "managed",
         "--set-env-vars",
-        "NEXT_PUBLIC_BACKEND_URL=https://zeni-agent-backend-service-gen-lang-client-0966393611.asia-south1.run.app",
+        "NEXT_PUBLIC_BACKEND_URL=https://zeni-agent-backend-service-7swwhfygga-el.a.run.app",
         "--set-env-vars",
         "NEXT_PUBLIC_API_URL=https://my-frontend-service-gen-lang-client-0966393611.asia-south1.run.app",
         "--allow-unauthenticated",

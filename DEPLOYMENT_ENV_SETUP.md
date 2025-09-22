@@ -24,7 +24,7 @@ gcloud builds submit --config cloudbuild.yaml .
 If you just need to update an existing deployment:
 ```bash
 gcloud run services update YOUR_SERVICE_NAME \
-  --set-env-vars NEXT_PUBLIC_BACKEND_URL=https://zeni-agent-backend-service-gen-lang-client-0966393611.asia-south1.run.app \
+  --set-env-vars NEXT_PUBLIC_BACKEND_URL=https://zeni-agent-backend-service-7swwhfygga-el.a.run.app \
   --set-env-vars NEXT_PUBLIC_API_URL=https://my-frontend-service-gen-lang-client-0966393611.asia-south1.run.app \
   --region=asia-south1
 ```

@@ -12,7 +12,7 @@ echo "=========================================="
 PROJECT_ID="${PROJECT_ID:-gen-lang-client-0966393611}"
 REGION="${REGION:-asia-south1}"
 SERVICE_NAME="${SERVICE_NAME:-zeni-ai-frontend}"
-BACKEND_URL="${BACKEND_URL:-https://zeni-agent-backend-service-gen-lang-client-0966393611.asia-south1.run.app}"
+BACKEND_URL="${BACKEND_URL:-https://zeni-agent-backend-service-7swwhfygga-el.a.run.app}"
 FRONTEND_URL="${FRONTEND_URL:-https://my-frontend-service-gen-lang-client-0966393611.asia-south1.run.app}"
 GOOGLE_API_KEY="${GOOGLE_API_KEY:-AIzaSyAZv27drMLj2XsDKhZ9NURMTM_hHgLJnAo}"
 

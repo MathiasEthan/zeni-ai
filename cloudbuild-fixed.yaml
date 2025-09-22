@@ -1,0 +1,46 @@
+# Cloud Build configuration for automatic deployment with environment variables
+steps:
+  # Build the Docker image with environment variables
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "build"
+      - "--build-arg"
+  - "NEXT_PUBLIC_BACKEND_URL=https://zeni-agent-backend-service-7swwhfygga-el.a.run.app"
+      - "--build-arg"
+      - "NEXT_PUBLIC_API_URL=https://my-frontend-service-gen-lang-client-0966393611.asia-south1.run.app"
+      - "--build-arg"
+      - "GOOGLE_API_KEY=${_GOOGLE_API_KEY}"
+      - "-t"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/zeni-ai/zeni-ai-frontend:latest"
+      - "."
+
+  # Push the image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args: 
+      - "push"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/zeni-ai/zeni-ai-frontend:latest"
+
+  # Deploy to Cloud Run
+  - name: "gcr.io/cloud-builders/gcloud"
+    args:
+      - "run"
+      - "deploy"
+      - "zeni-ai-frontend"
+      - "--image"
+      - "us-central1-docker.pkg.dev/$PROJECT_ID/zeni-ai/zeni-ai-frontend:latest"
+      - "--region"
+      - "asia-south1"
+      - "--platform"
+      - "managed"
+      - "--set-env-vars"
+      - "NEXT_PUBLIC_BACKEND_URL=https://zeni-agent-backend-service-7swwhfygga-el.a.run.app"
+      - "--set-env-vars"
+      - "NEXT_PUBLIC_API_URL=https://my-frontend-service-gen-lang-client-0966393611.asia-south1.run.app"
+      - "--allow-unauthenticated"
+
+# Substitutions for environment variables
+substitutions:
+  _GOOGLE_API_KEY: "AIzaSyAZv27drMLj2XsDKhZ9NURMTM_hHgLJnAo"
+
+options:
+  logging: CLOUD_LOGGING_ONLY

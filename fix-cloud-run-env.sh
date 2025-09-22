@@ -12,7 +12,7 @@ echo "=========================================="
 PROJECT_ID="gen-lang-client-0966393611"  # Replace with your actual project ID
 REGION="asia-south1"
 FRONTEND_SERVICE_NAME="my-frontend-service"  # Replace with your actual service name
-BACKEND_URL="https://zeni-agent-backend-service-gen-lang-client-0966393611.asia-south1.run.app"
+BACKEND_URL="https://zeni-agent-backend-service-7swwhfygga-el.a.run.app"
 FRONTEND_URL="https://my-frontend-service-gen-lang-client-0966393611.asia-south1.run.app"
 
 echo "📋 Configuration:"

@@ -32,7 +32,7 @@ export function getBackendUrl(): string {
     }
   }
   
-  return backendUrl || 'http://localhost:5000';
+  return backendUrl || 'https://zeni-agent-backend-service-7swwhfygga-el.a.run.app';
 }
 
 /**
