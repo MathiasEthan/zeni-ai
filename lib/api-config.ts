@@ -22,7 +22,17 @@ export function getApiBaseUrl(): string {
  * Uses NEXT_PUBLIC_BACKEND_URL if available, otherwise falls back to localhost:5000
  */
 export function getBackendUrl(): string {
-  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  
+  if (!backendUrl) {
+    console.warn('NEXT_PUBLIC_BACKEND_URL is not set. Using localhost fallback. This will fail in production!');
+    // In production, this should never happen - log an error for debugging
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      console.error('Backend URL not configured for production deployment!');
+    }
+  }
+  
+  return backendUrl || 'http://localhost:5000';
 }
 
 /**
